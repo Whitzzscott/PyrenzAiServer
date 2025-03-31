@@ -1,5 +1,5 @@
 import { Request, Response } from 'express';
-import { supabase } from '../Util.js'
+import { supabase } from '../Util.js';
 
 export default async function GetCharacter(req: Request, res: Response): Promise<Response> {
   try {
@@ -9,9 +9,7 @@ export default async function GetCharacter(req: Request, res: Response): Promise
       return res.status(400).json({ error: 'Either "id" or "name" must be provided.' });
     }
 
-    let query = supabase
-      .from('public_character_view') // ✅ Use the view instead
-      .select('id, name, description, first_message, image_url');
+    let query = supabase.from('public_character_view').select('id, name, description, first_message, image_url');
 
     if (id) {
       query = query.eq('id', id);
@@ -33,7 +31,7 @@ export default async function GetCharacter(req: Request, res: Response): Promise
     const character = {
       ...data,
       firstMessage: data.first_message,
-      imageUrl: data.image_url, // ✅ Ensure image_url is returned correctly
+      imageUrl: data.image_url
     };
 
     return res.status(200).json(character);
