@@ -1,0 +1,46 @@
+{
+  "name": "pandamoniumserver",
+  "version": "1.0.0",
+  "description": "",
+  "license": "ISC",
+  "author": "",
+  "type": "module",
+  "main": "index.js",
+  "scripts": {
+    "build": "tsc",
+    "watch": "tsc --watch",
+    "dev": "nodemon"
+  },
+  "dependencies": {
+    "@pinecone-database/pinecone": "^5.1.1",
+    "@qdrant/js-client-rest": "^1.13.0",
+    "@supabase/supabase-js": "^2.49.3",
+    "axios": "^1.8.4",
+    "bcrypt": "^5.1.1",
+    "body-parser": "^1.20.3",
+    "compression": "^1.8.0",
+    "cors": "^2.8.5",
+    "dotenv": "^16.4.7",
+    "express": "^4.21.2",
+    "express-rate-limit": "^7.5.0",
+    "helmet": "^8.1.0",
+    "joi": "^17.13.3",
+    "jsonwebtoken": "^9.0.2",
+    "llama-tokenizer-js": "^1.2.2",
+    "node-cron": "^3.0.3",
+    "nodemon": "^3.1.9",
+    "path": "^0.12.7",
+    "uuid": "^11.1.0",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "@types/compression": "^1.7.5",
+    "@types/cors": "^2.8.17",
+    "@types/csurf": "^1.11.5",
+    "@types/express": "^5.0.1",
+    "@types/jsonwebtoken": "^9.0.9",
+    "@types/lodash": "^4.17.16",
+    "@types/node-fetch": "^2.6.12",
+    "concurrently": "^9.1.2"
+  }
+}
