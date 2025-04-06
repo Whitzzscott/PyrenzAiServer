@@ -1,4 +1,4 @@
-import { supabase } from '../../Util.js';
+import { supabase } from '../../Utils.js';
 
 type Character = {
   persona: string;

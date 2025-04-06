@@ -1,4 +1,4 @@
-import { supabase } from '../../Util.js';
+import { supabase } from '../../Utils.js';
 
 export async function saveMessageToSupabase(
   conversationId: string,

@@ -1,8 +1,9 @@
 import axios from 'axios';
+import { OPENAI_API_KEY } from '../../../Utils/Uility.js'
 
 const OPENAI_API_URL = 'https://api.openai.com/v1/embeddings';
-const { OPENAI_API_KEY, OPENAI_EMBEDDING_MODEL = 'text-embedding-ada-002' } = process.env;
-
+const OPENAI_EMBEDDING_MODEL =   'text-embedding-ada-002';
+ 
 if (!OPENAI_API_KEY) throw new Error('Missing OPENAI_API_KEY in environment variables.');
 
 export const vectorizeMessage = async (message: string): Promise<number[]> => {

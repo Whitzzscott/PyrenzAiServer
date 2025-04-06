@@ -1,22 +1,19 @@
 import type { Request, Response } from 'express';
-import fetchCharacter from './Characters/Characters.js';
-import GetCharacter from './Characters/GetCharacter.js';
 import GetChatId from './Chats/GetChatId.js';
 import GenerateChatID from './Chats/GenerateChatId.js';
-import Authorization from './Authorization/Authorization.js';
-import Generate from './Generate/Generate.js';
-import { GetMessages } from './Chats/GetMessage.js'
+ import Generate from './Generate/Generate.js';
+import { GetMessages } from './Chats/GetMessage.js';
+import { PreviousChat } from './Chats/GetPreviousChat.js';
+import { supabase } from './Utils.js';
 
 type RouteHandler = (req: Request, res: Response) => Promise<Response | void> | Response | void;
 
 const Routes: Record<string, RouteHandler> = {
-  GetCharacter,
-  fetchCharacter,
   GetChatId,
+  PreviousChat,
   GenerateChatID,
-  Authorization,
   Generate,
-  GetMessages
+  GetMessages,
 };
 
 const AutoRoutes = new Proxy(Routes, {
@@ -26,6 +23,22 @@ const AutoRoutes = new Proxy(Routes, {
       if (typeof routeHandler === 'function') {
         return async (req: Request, res: Response) => {
           try {
+            const authHeader = req.headers.authorization;
+            if (authHeader && authHeader.startsWith('Bearer ')) {
+              const token = authHeader.split(' ')[1];
+
+              const { data: sessionData, error: sessionError } = await supabase.auth.setSession({
+                refresh_token: token,
+                access_token: token,
+              });
+
+              if (sessionError || !sessionData.session) {
+                return res.status(401).json({ error: 'Unauthorized' });
+              }
+            } else {
+              return res.status(401).json({ error: 'Unauthorized' });
+            }
+
             const result = await routeHandler(req, res);
             if (result instanceof Response) {
               return result;
@@ -36,8 +49,11 @@ const AutoRoutes = new Proxy(Routes, {
           }
         };
       }
+    } else {
+      return async (req: Request, res: Response) => {
+        res.status(404).json({ error: 'Endpoint Not Found' });
+      };
     }
-    throw new Error(`API action "${prop}" not found.`);
   },
 });
 

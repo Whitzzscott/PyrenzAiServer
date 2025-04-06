@@ -7,8 +7,9 @@ import axios from 'axios';
 import { z } from 'zod';
 import llamaTokenizer from 'llama-tokenizer-js';
 import { v4 as uuidv4 } from 'uuid';
+import { savePreviousMessage } from './GenerateSystem/savePreviousMessage.js';
+import { OPENROUTER_API_KEY } from '../../Utils/Uility.js'
 
-const { OPENROUTER_API_KEY } = process.env;
 if (!OPENROUTER_API_KEY) throw new Error('Missing OPENROUTER_API_KEY in environment variables.');
 
 const modelMap = { 'Mango Ube': 'sao10k/l3-lunaris-8b' } as const;
@@ -18,6 +19,7 @@ const requestSchema = z.object({
   ConversationId: z.string().uuid(),
   Message: z.object({ User: z.string().min(1) }),
   Engine: z.enum(Object.keys(modelMap) as [keyof typeof modelMap]).default('Mango Ube'),
+  characterImageUrl: z.string().url(),
   inference_settings: z.record(z.any()).optional(),
 });
 
@@ -32,7 +34,7 @@ const cleanMemory = (message: string): string =>
 
 export default async function generate(req: Request, res: Response) {
   try {
-    const { ConversationId, Message, Engine, inference_settings = {} } = requestSchema.parse(req.body);
+    const { ConversationId, Message, Engine, characterImageUrl, inference_settings = {} } = requestSchema.parse(req.body);
     const rawUserMessage = Message.User;
     const model = modelMap[Engine];
 
@@ -86,6 +88,8 @@ export default async function generate(req: Request, res: Response) {
       userMessageUuid,
       charMessageUuid
     );
+
+    await savePreviousMessage(req, ConversationId, aiMessage, characterImageUrl);
 
     res.json({
       data: { role: 'character', content: aiMessage },

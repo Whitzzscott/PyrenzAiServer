@@ -1,5 +1,4 @@
 import express from 'express';
-import type { Request, Response } from 'express';
 import bodyParser from 'body-parser';
 import cors from 'cors';
 import dotenv from 'dotenv';
@@ -10,7 +9,7 @@ import compression from 'compression';
 
 dotenv.config();
 
-const PORT = process.env.PORT || 3000;
+const PORT = process.env.PORT  
 
 const allowedOrigins = ['http://localhost:3000', 'http://localhost:5173'];
 
@@ -53,14 +52,15 @@ app.all('/api/:action', async (req, res) => {
 
   if (typeof Routes[action] === 'function') {
     try {
-      const result = await Routes[action](req, res);
-      res.status(200).json(result);
+      await Routes[action](req, res);
     } catch (error) {
-      console.error('API Route Error:', error);
-      res.status(500).json({
-        error: 'Internal Server Error',
-        details: (error as Error).message,
-      });
+      if (!res.headersSent) {
+        console.error('API Route Error:', error);
+        res.status(500).json({
+          error: 'Internal Server Error',
+          details: error instanceof Error ? error.message : 'Unknown error',
+        });
+      }
     }
   } else {
     res.status(404).json({
