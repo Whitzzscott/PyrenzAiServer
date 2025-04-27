@@ -15,11 +15,12 @@
     "noEmit": false,
     "jsx": "react-jsx",
     "allowJs": true,
-    "baseUrl": "./src",   
+    "baseUrl": ".",  
     "paths": {
-      "@routes/*": ["Route/*"]  
+      "@routes/*": ["src/routes/*"],  
+      "~/*": ["src/*"]  
     }
   },
-  "include": ["src"],
-  "exclude": ["node_modules", "dist"]
+  "include": ["src"], 
+  "exclude": ["node_modules", "dist"] 
 }

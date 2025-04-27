@@ -1,3 +1,4 @@
+import 'module-alias/register.js';
 import express, { Request, Response, NextFunction } from "express";
 import bodyParser from "body-parser";
 import cors from "cors";

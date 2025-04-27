@@ -1,5 +1,5 @@
 import type { Request, Response } from "express";
-import { supabase } from "./Utils.js";
+import { supabase } from "./Supabase";
 import { 
   GetPreviousChat,
   Chats,

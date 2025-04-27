@@ -1,6 +1,6 @@
 import { Request, Response } from "express";
 import { z } from "zod";
-import { supabase } from "../Utils.js";
+import { supabase } from "../Supabase.js";
 
 const personaSchema = z.object({
   user_uuid: z.string().uuid(),

@@ -1,4 +1,4 @@
-import { supabase } from "../Utils.js";
+import { supabase } from "../Supabase.js";
 import { z } from "zod";
 import { Request, Response } from "express";
 

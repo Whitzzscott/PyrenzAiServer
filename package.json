@@ -25,6 +25,7 @@
     "joi": "^17.13.3",
     "jsonwebtoken": "^9.0.2",
     "llama-tokenizer-js": "^1.2.2",
+    "module-alias": "^2.2.3",
     "node-cron": "^3.0.3",
     "nodemon": "^3.1.9",
     "path": "^0.12.7",
@@ -34,12 +35,16 @@
   "devDependencies": {
     "@types/compression": "^1.7.5",
     "@types/cors": "^2.8.17",
-    "@types/csurf": "^1.11.5",
     "@types/express": "^5.0.1",
     "@types/jsonwebtoken": "^9.0.9",
     "@types/lodash": "^4.17.16",
     "@types/node-fetch": "^2.6.12",
     "concurrently": "^9.1.2",
+    "tsconfig-paths": "^4.2.0",
     "typescript": "^5.8.3"
+  },
+  "_moduleAliases": {
+    "~": "dist",
+    "@routes": "dist/routes"
   }
 }

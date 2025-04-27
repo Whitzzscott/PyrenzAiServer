@@ -1,7 +1,7 @@
 import { Request, Response } from 'express';
 import { z } from 'zod';
 import { v4 as uuidv4 } from 'uuid';
-import { supabase } from '../Utils.js';
+import { supabase } from '@routes/Supabase';
 
 const decodeBase64Image = (dataString: string): Buffer => {
   const matches = dataString.match(/^data:(.+);base64,(.+)$/);
