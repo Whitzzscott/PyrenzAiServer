@@ -9,7 +9,7 @@ import compression from "compression";
 import path from 'path';
 
 const app = express();
-const PORT = 1983;
+const PORT = process.env.PORT;
 
 const allowedOrigins = ["http://localhost:8800"];
 
