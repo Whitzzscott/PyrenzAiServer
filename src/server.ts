@@ -54,7 +54,7 @@ const setResponseHeaders = (req: Request, res: Response, next: NextFunction) => 
   next();
 };
 
-app.set('trust proxy', true);
+app.set('trust proxy', 1);
 app.use(helmet());
 app.use(compression());
 app.use(setResponseHeaders);
