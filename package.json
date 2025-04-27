@@ -1,5 +1,5 @@
 {
-  "name": "pandamoniumserver",
+  "name": "pyrenzai",
   "version": "1.0.0",
   "description": "",
   "license": "ISC",
@@ -12,8 +12,6 @@
     "dev": "nodemon"
   },
   "dependencies": {
-    "@pinecone-database/pinecone": "^5.1.1",
-    "@qdrant/js-client-rest": "^1.13.0",
     "@supabase/supabase-js": "^2.49.3",
     "axios": "^1.8.4",
     "bcrypt": "^5.1.1",
