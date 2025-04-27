@@ -32,6 +32,7 @@ const createCharacterSchema = z.object({
   token_total: z.number(),
   bannerImage: z.string().optional(),
   profileImage: z.string().optional(),
+  auth_key: z.string().min(1, 'auth_key is required'),
 });
 
 export default async function createCharacter(req: Request, res: Response): Promise<void> {
@@ -54,7 +55,7 @@ export default async function createCharacter(req: Request, res: Response): Prom
     return;
   }
 
-  const { bannerImage, profileImage, ...characterData } = validation.data;
+  const { bannerImage, profileImage, auth_key, ...characterData } = validation.data;
 
   try {
     let bannerImageUrl: string | null = null;
@@ -104,15 +105,34 @@ export default async function createCharacter(req: Request, res: Response): Prom
 
     const payload = {
       ...characterData,
-      input_user_uuid: user.user.id,
+      user_uuid: user.user.id,
+      auth_key,
       ...(bannerImageUrl && { bannerImage: bannerImageUrl }),
       ...(profileImageUrl && { profileImage: profileImageUrl }),
     };
 
-    const { data, error } = await supabase.rpc('create_character', { input_data: payload });
-    if (error) throw error;
+    const { data: charData, error: charError } = await supabase.rpc('create_character', {
+      input_data: payload,
+    });
 
-    res.status(200).json({ message: 'Character created successfully', data });
+    if (charError) throw charError;
+
+    const input_char_uuid = charData;
+
+    const { data: chatData, error: chatError } = await supabase.rpc('create_new_chat', {
+      character_uuid: input_char_uuid,
+      user_uuid: user.user.id,
+      auth_key,
+    });
+    
+
+    if (chatError) throw chatError;
+
+    res.status(200).json({
+      message: 'Character and chat created successfully',
+      character_uuid: input_char_uuid,
+      chat: chatData,
+    });
   } catch (err) {
     res.status(500).json({ error: `Error sending data to Supabase: ${(err as Error).message}` });
   }

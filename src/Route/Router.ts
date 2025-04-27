@@ -5,6 +5,8 @@ import {
   Chats,
   GetMessages,
 } from "./Chats/ChatsHandler.js"
+import { getPersona } from "./Persona/Persona.js"
+import createCharacter from "./Create/CreateCharacter.js"
 
 type RouteHandler = (
   req: Request,
@@ -14,7 +16,9 @@ type RouteHandler = (
 const Routes: Record<string, RouteHandler> = {
   GetPreviousChat,
   GetMessages,
-  Chats
+  Chats,
+  getPersona,
+  createCharacter,
 };
 
 const AutoRoutes = new Proxy(Routes, {
