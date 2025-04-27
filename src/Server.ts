@@ -1,3 +1,5 @@
+import { fileURLToPath } from 'url';
+import { dirname } from 'path';
 import 'module-alias/register.js';
 import express, { Request, Response, NextFunction } from "express";
 import bodyParser from "body-parser";
@@ -7,6 +9,9 @@ import Routes from './routes/appRouter.js';
 import helmet from "helmet";
 import compression from "compression";
 import path from 'path';
+
+const __filename = fileURLToPath(import.meta.url);
+const __dirname = dirname(__filename);
 
 const app = express();
 const PORT = process.env.PORT;
