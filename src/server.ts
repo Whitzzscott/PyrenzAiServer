@@ -27,7 +27,7 @@ const corsOptions = {
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'authentication_key', 'captcha_key'],
 };
 
 const limiter = rateLimit({
@@ -92,13 +92,6 @@ app.all("/api/:action", async (req: Request, res: Response, next: NextFunction) 
 app.get("/", (_req: Request, res: Response) => {
   res.redirect(301, "https://pyrenzai.com");
 });
-
-if (process.env.NODE_ENV === 'production') {
-  app.use(express.static(path.join(__dirname, 'dist')));
-  app.get('*', (req: Request, res: Response) => {
-    res.sendFile(path.resolve(__dirname, 'dist', 'index.html'));
-  });
-}
 
 app.use((err: Error, req: Request, res: Response, _next: NextFunction) => {
   if (!res.headersSent) {
