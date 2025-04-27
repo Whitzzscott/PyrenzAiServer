@@ -16,7 +16,7 @@ const __dirname = dirname(__filename);
 const app = express();
 const PORT = process.env.PORT;
 
-const allowedOrigins = ["http://localhost:8800"];
+const allowedOrigins = ["https://pyrenzai.com"];
 
 const limiter = rateLimit({
   windowMs: 60 * 1000,
