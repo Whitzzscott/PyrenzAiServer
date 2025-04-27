@@ -1,8 +1,8 @@
 {
   "compilerOptions": {
-    "target": "ESNext", 
-    "module": "ESNext", 
-    "moduleResolution": "Node", 
+    "target": "ESNext",
+    "module": "ESNext",
+    "moduleResolution": "Node",
     "strict": true,
     "esModuleInterop": true,
     "skipLibCheck": true,
@@ -14,7 +14,11 @@
     "isolatedModules": true,
     "noEmit": false,
     "jsx": "react-jsx",
-    "allowJs": true 
+    "allowJs": true,
+    "baseUrl": "./src",   
+    "paths": {
+      "@routes/*": ["Route/*"]  
+    }
   },
   "include": ["src"],
   "exclude": ["node_modules", "dist"]
