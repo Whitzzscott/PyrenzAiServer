@@ -39,6 +39,7 @@
     "@types/jsonwebtoken": "^9.0.9",
     "@types/lodash": "^4.17.16",
     "@types/node-fetch": "^2.6.12",
-    "concurrently": "^9.1.2"
+    "concurrently": "^9.1.2",
+    "typescript": "^5.8.3"
   }
 }
