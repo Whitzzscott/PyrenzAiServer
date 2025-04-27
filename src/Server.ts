@@ -2,7 +2,7 @@ import express, { Request, Response, NextFunction } from "express";
 import bodyParser from "body-parser";
 import cors from "cors";
 import rateLimit from "express-rate-limit";
-import Routes from '@routes/router';
+import Routes from '@routes/router.js';
 import helmet from "helmet";
 import compression from "compression";
 import path from 'path';
