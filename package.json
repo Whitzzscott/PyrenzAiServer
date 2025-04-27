@@ -6,7 +6,7 @@
   "author": "",
   "type": "module",
   "scripts": {
-    "build": "tsc",
+    "build": "tsc && node -e \"require('shelljs').exec('ls')\"",
     "watch": "tsc --watch",
     "dev": "nodemon"
   },
