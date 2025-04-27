@@ -14,9 +14,21 @@ const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
 const app = express();
-const PORT = process.env.PORT;
-
+const PORT = process.env.PORT || 8080;
 const allowedOrigins = ["https://pyrenzai.com"];
+
+const corsOptions = {
+  origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
+    if (!origin || allowedOrigins.includes(origin)) {
+      callback(null, true);
+    } else {
+      callback(new Error("Not allowed by CORS"), false);
+    }
+  },
+  credentials: true,
+  methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
+  allowedHeaders: ['Content-Type', 'Authorization'],
+};
 
 const limiter = rateLimit({
   windowMs: 60 * 1000,
@@ -25,7 +37,6 @@ const limiter = rateLimit({
 });
 
 const setResponseHeaders = (req: Request, res: Response, next: NextFunction) => {
-  res.setHeader("Content-Type", "text/html");
   res.setHeader("X-Powered-By", "Pyrenz AI");
   res.setHeader("Strict-Transport-Security", "max-age=31536000; includeSubDomains; preload");
   res.setHeader("X-Content-Type-Options", "nosniff");
@@ -39,32 +50,16 @@ const setResponseHeaders = (req: Request, res: Response, next: NextFunction) => 
   res.setHeader("Origin-Agent-Cluster", "?1");
   res.setHeader("X-DNS-Prefetch-Control", "off");
   res.setHeader("X-Download-Options", "noopen");
-  res.setHeader("Feature-Policy", "accelerometer 'none'; autoplay 'none'; clipboard-write 'none'; encrypted-media 'none'; geolocation 'none'; microphone 'none'; midi 'none'; payment 'none'; usb 'none'");
   res.setHeader("Content-Security-Policy", "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self'; connect-src 'self'; font-src 'self'; frame-src 'none'; object-src 'none'; form-action 'self'; base-uri 'self'; manifest-src 'self';");
   next();
 };
 
+app.set('trust proxy', true);
 app.use(helmet());
 app.use(compression());
 app.use(setResponseHeaders);
-
-type CorsCallback = (err: Error | null, allow?: boolean) => void;
-
-app.use(
-  cors({
-    origin: (origin: string | undefined, callback: CorsCallback) => {
-      if (!origin || allowedOrigins.includes(origin)) {
-        callback(null, true);
-      } else {
-        callback(new Error("Not allowed by CORS"), false);
-      }
-    },
-    credentials: true,
-  }),
-);
-
-app.set('trust proxy', true);
-app.use(limiter);
+app.use(cors(corsOptions));
+app.options('*', cors(corsOptions));
 app.use(bodyParser.json({ limit: "50mb" }));
 app.use(bodyParser.urlencoded({ limit: "50mb", extended: true }));
 app.use(express.static("public"));
@@ -75,37 +70,26 @@ app.get("/ping", (_req: Request, res: Response) => {
 });
 
 type RouteHandler = (req: Request, res: Response) => Promise<void> | void;
-
-interface RoutesType {
-  [key: string]: RouteHandler;
-}
-
+interface RoutesType { [key: string]: RouteHandler; }
 const routes = Routes as RoutesType;
 
-app.all("/api/:action", async (req: Request, res: Response) => {
-  const { action } = req.params;
+app.use('/api', limiter);
 
-  if (typeof routes[action] === "function") {
+app.all("/api/:action", async (req: Request, res: Response, next: NextFunction) => {
+  const { action } = req.params;
+  const routeHandler = routes[action];
+  if (typeof routeHandler === "function") {
     try {
-      await routes[action](req, res);
+      await routeHandler(req, res);
     } catch (error) {
-      if (!res.headersSent) {
-        console.error("API Route Error:", error);
-        res.status(500).json({
-          error: "Internal Server Error",
-          details: error instanceof Error ? error.message : "Unknown error",
-        });
-      }
+      next(error);
     }
   } else {
-    res.status(404).json({
-      error:
-        "[INVALID ACTION]: Invalid API action. Maybe contact the developer for this?",
-    });
+    res.status(404).json({ error: "[INVALID ACTION]: Invalid API action. Maybe contact the developer for this?" });
   }
 });
 
-app.get("/", (req: Request, res: Response) => {
+app.get("/", (_req: Request, res: Response) => {
   res.redirect(301, "https://pyrenzai.com");
 });
 
@@ -115,6 +99,15 @@ if (process.env.NODE_ENV === 'production') {
     res.sendFile(path.resolve(__dirname, 'dist', 'index.html'));
   });
 }
+
+app.use((err: Error, req: Request, res: Response, _next: NextFunction) => {
+  if (!res.headersSent) {
+    res.status(500).json({
+      error: "Internal Server Error",
+      details: err.message || "Unknown error",
+    });
+  }
+});
 
 app.listen(PORT, () => {
   console.log(`✅ Server running at http://localhost:${PORT}`);
