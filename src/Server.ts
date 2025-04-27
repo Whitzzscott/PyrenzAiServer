@@ -21,7 +21,7 @@ const limiter = rateLimit({
 const setResponseHeaders = (req: Request, res: Response, next: NextFunction) => {
   res.setHeader("Content-Type", "text/html");
   res.setHeader("X-Powered-By", "Pyrenz AI");
-  res.setHeader("Strict-Transport-Security", "max-age=31536000; includeSubDomains");
+  res.setHeader("Strict-Transport-Security", "max-age=31536000; includeSubDomains; preload");
   res.setHeader("X-Content-Type-Options", "nosniff");
   res.setHeader("X-Frame-Options", "DENY");
   res.setHeader("X-XSS-Protection", "1; mode=block");
@@ -33,6 +33,8 @@ const setResponseHeaders = (req: Request, res: Response, next: NextFunction) => 
   res.setHeader("Origin-Agent-Cluster", "?1");
   res.setHeader("X-DNS-Prefetch-Control", "off");
   res.setHeader("X-Download-Options", "noopen");
+  res.setHeader("Feature-Policy", "accelerometer 'none'; autoplay 'none'; clipboard-write 'none'; encrypted-media 'none'; geolocation 'none'; microphone 'none'; midi 'none'; payment 'none'; usb 'none'");
+  res.setHeader("Content-Security-Policy", "default-src 'self'; script-src 'self'; style-src 'self' 'unsafe-inline'; img-src 'self'; connect-src 'self'; font-src 'self'; frame-src 'none'; object-src 'none'; form-action 'self'; base-uri 'self'; manifest-src 'self';");
   next();
 };
 
