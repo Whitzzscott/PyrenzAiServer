@@ -99,6 +99,10 @@ app.all("/api/:action", async (req: Request, res: Response) => {
   }
 });
 
+app.get("/", (req: Request, res: Response) => {
+  res.redirect(301, "https://pyrenzai.com");
+});
+
 if (process.env.NODE_ENV === 'production') {
   app.use(express.static(path.join(__dirname, 'dist')));
   app.get('*', (req: Request, res: Response) => {
