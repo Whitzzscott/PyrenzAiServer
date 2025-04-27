@@ -1,7 +1,7 @@
 import jwt, { JwtPayload } from 'jsonwebtoken';
 import { supabase } from '@routes/Supabase'; 
 import { Request } from 'express';
-import { JWT_SECRET } from '~/utils/Uility'
+import { JWT_SECRET } from '@routes/utility'
 
  if (!JWT_SECRET) {
   throw new Error('Missing JWT_SECRET environment variable.');

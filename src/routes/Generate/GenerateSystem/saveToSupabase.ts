@@ -1,4 +1,4 @@
-import { supabase } from '@routes/Supabase';
+import { supabase } from '../../Supabase.js';
 
 export async function saveMessageToSupabase(
   conversationId: string,

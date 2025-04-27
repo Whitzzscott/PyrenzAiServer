@@ -8,7 +8,7 @@ import { z } from 'zod';
 import llamaTokenizer from 'llama-tokenizer-js';
 import { v4 as uuidv4 } from 'uuid';
 import { savePreviousMessage } from './GenerateSystem/savePreviousMessage.js';
-import { OPENROUTER_API_KEY } from '~/utils/Uility'
+import { OPENROUTER_API_KEY } from '@routes/utility.js'
 
 if (!OPENROUTER_API_KEY) throw new Error('Missing OPENROUTER_API_KEY in environment variables.');
 

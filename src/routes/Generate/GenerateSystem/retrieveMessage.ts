@@ -1,4 +1,4 @@
-import { supabase } from '@routes/Supabase.js';
+import { supabase } from '../../Supabase.js';
 import { z } from 'zod';
 import { vectorizeMessage } from '../GenerateSystem/vectorizemessage.js';
 

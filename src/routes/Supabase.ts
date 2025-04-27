@@ -1,5 +1,5 @@
 import { createClient, SupabaseClient } from '@supabase/supabase-js';
-import { SUPABASE_SERVICE_ROLE_KEY, SUPABASE_URL } from "~/utils/Uility";
+import { SUPABASE_SERVICE_ROLE_KEY, SUPABASE_URL } from "./utility.js";
 
 if (!SUPABASE_URL || !SUPABASE_SERVICE_ROLE_KEY) {
   console.log(SUPABASE_URL, SUPABASE_SERVICE_ROLE_KEY);

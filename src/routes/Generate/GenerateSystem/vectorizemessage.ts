@@ -1,5 +1,5 @@
 import axios from 'axios';
-import { OPENAI_API_KEY } from '~/utils/Uility'
+import { OPENAI_API_KEY } from '@routes/utility'
 
 const OPENAI_API_URL = 'https://api.openai.com/v1/embeddings';
 const OPENAI_EMBEDDING_MODEL =   'text-embedding-ada-002';
