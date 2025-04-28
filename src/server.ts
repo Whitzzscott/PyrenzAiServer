@@ -15,7 +15,7 @@ const __dirname = dirname(__filename);
 
 const app = express();
 const PORT = process.env.PORT || 8080;
-const allowedOrigins = ["https://pyrenzai.com"];
+const allowedOrigins = ["https://pyrenzai.com", "http://localhost:8800"];
 
 const corsOptions = {
   origin: (origin: string | undefined, callback: (err: Error | null, allow?: boolean) => void) => {
