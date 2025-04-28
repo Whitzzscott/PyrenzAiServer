@@ -27,7 +27,7 @@ const corsOptions = {
   },
   credentials: true,
   methods: ['GET', 'POST', 'PUT', 'DELETE', 'OPTIONS'],
-  allowedHeaders: ['Content-Type', 'Authorization', 'authentication_key', 'captcha_key'],
+  allowedHeaders: ['Content-Type', 'Authorization', 'Authentication_key', 'Captcha_key'],
 };
 
 const limiter = rateLimit({
