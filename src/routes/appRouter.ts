@@ -31,7 +31,6 @@ const AutoRoutes = new Proxy(Routes, {
             const authHeader = req.headers.authorization;
             if (authHeader && authHeader.startsWith("Bearer ")) {
               const token = authHeader.split(" ")[1];
-              console.log("Auth token incoming:", token);
 
               const { data: { user }, error } = await supabase.auth.getUser(token);
 
@@ -39,8 +38,7 @@ const AutoRoutes = new Proxy(Routes, {
                 console.error("Auth error:", error);
                 return res.status(401).json({ error: "Unauthorized" });
               }
-              console.log("Auth user result:", user);
-              console.log("Auth error result:", error);
+
               
               (req as any).user = user;
             } else {
