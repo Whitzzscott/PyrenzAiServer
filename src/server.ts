@@ -1,7 +1,7 @@
 import { fileURLToPath } from 'url';
 import { dirname } from 'path';
 import 'module-alias/register.js';
-import express, { Request, Response, NextFunction } from "express";
+import express, { Request, Response, NextFunction, Application } from "express";
 import bodyParser from "body-parser";
 import cors from "cors";
 import rateLimit from "express-rate-limit";
@@ -9,11 +9,13 @@ import Routes from './routes/appRouter.js';
 import helmet from "helmet";
 import compression from "compression";
 import path from 'path';
+import { z } from "zod";
+import fs from "fs";
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = dirname(__filename);
 
-const app = express();
+const app: Application = express();
 const PORT = process.env.PORT || 8080;
 const allowedOrigins = ["https://pyrenzai.com", "http://localhost:8800"];
 
