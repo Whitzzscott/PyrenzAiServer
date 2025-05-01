@@ -7,6 +7,7 @@ import {
 } from "./Chats/ChatsHandler.js"
 import { getPersona } from "./Persona/Persona.js"
 import createCharacter from "./Create/CreateCharacter.js"
+import { CharacterExtract } from "./CharacterExtract/characterextractor.js"
 
 type RouteHandler = (
   req: Request,
@@ -19,6 +20,7 @@ const Routes: Record<string, RouteHandler> = {
   Chats,
   getPersona,
   createCharacter,
+  CharacterExtract,
 };
 
 const AutoRoutes = new Proxy(Routes, {
