@@ -94,6 +94,8 @@ export default async function Generate(req: Request, res: Response) {
       token: tokenCount,
     });
   } catch (error: unknown) {
+    console.error('Error generating reply:', error);
+
     if (error instanceof z.ZodError) {
       res.status(400).json({ error: error.errors });
     } else if (axios.isAxiosError(error)) {

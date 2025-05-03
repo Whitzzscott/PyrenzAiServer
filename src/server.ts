@@ -8,12 +8,8 @@ import rateLimit from "express-rate-limit";
 import Routes from './routes/appRouter.js';
 import helmet from "helmet";
 import compression from "compression";
-import path from 'path';
-import { z } from "zod";
-import fs from "fs";
 
 const __filename = fileURLToPath(import.meta.url);
-const __dirname = dirname(__filename);
 
 const app: Application = express();
 const PORT = process.env.PORT || 8080;

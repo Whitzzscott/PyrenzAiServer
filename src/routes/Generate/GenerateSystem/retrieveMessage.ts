@@ -1,14 +1,5 @@
 import { supabase } from '../../Supabase.js';
 import { z } from 'zod';
-import { vectorizeMessage } from '../GenerateSystem/vectorizemessage.js';
-
-interface MessageResult {
-  conversation_id: string;
-  user_message: string | null;
-  ai_message: string | null;
-  created_at: string;
-  relevance_score: number;
-}
 
 const retrieveMessagesSchema = z.object({
   conversationId: z.string().uuid(),
@@ -26,9 +17,9 @@ const sanitizeSearchTerms = (terms: string[]): string[] =>
 const fetchFilteredMessages = async (
   conversationId: string,
   searchTerms: string[] = [],
-  pageSize = 15,
-  ftsWeight = 0.5,
-  minScore = 0.0
+  pageSize: number = 15,
+  ftsWeight: number = 0.5,
+  minScore: number = 0.0
 ): Promise<string[]> => {
   try {
     console.log('🔍 Search Terms:', searchTerms.length ? searchTerms : 'No search terms provided');
@@ -43,16 +34,14 @@ const fetchFilteredMessages = async (
 
     if (error) throw new Error(`Message retrieval failed: ${error.message}`);
 
-    console.log('📦 Data returned from RPC call:', data);
-
     if (!Array.isArray(data)) {
       throw new Error('Unexpected data format returned from RPC call');
     }
 
-    const memoryLogs = data.map((msg: MessageResult) => {
-      const userMemory = msg.user_message ? `### Memory (User Response):\n${msg.user_message}` : '';
-      const aiMemory = msg.ai_message ? `### Memory (AI Response):\n${msg.ai_message}` : '';
-      return [userMemory, aiMemory].filter(Boolean).join('\n\n');
+    const memoryLogs = data.map((msg: any) => {
+      const userMemory = msg.user_message ? `{{user}}: ${msg.user_message}` : '';
+      const aiMemory = msg.char_message ? `{{you}}: ${msg.char_message}` : '';
+      return [userMemory, aiMemory].filter(Boolean).join('');
     });
 
     console.log('🧠 Retrieved Memory:', memoryLogs.length ? memoryLogs : ['No relevant memory found.']);
@@ -66,10 +55,10 @@ const fetchFilteredMessages = async (
 
 export const retrieveMessages = async (
   conversationId: string,
-  searchTerms?: string[],
-  pageSize = 25,
-  ftsWeight = 0.5,
-  minScore = 0.0
+  searchTerms: string[] = [],
+  pageSize: number = 25,
+  ftsWeight: number = 0.5,
+  minScore: number = 0.0
 ): Promise<string[]> => {
   const { conversationId: validatedId, searchTerms: terms, pageSize: size, ftsWeight: weight, minScore: score } =
     retrieveMessagesSchema.parse({ conversationId, searchTerms, pageSize, ftsWeight, minScore });
