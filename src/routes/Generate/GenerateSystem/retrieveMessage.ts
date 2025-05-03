@@ -4,7 +4,6 @@ import { z } from 'zod';
 const retrieveMessagesSchema = z.object({
   conversationId: z.string().uuid(),
   searchTerms: z.array(z.string()).optional(),
-  pageSize: z.number().int().min(1).max(100).default(25),
   ftsWeight: z.number().min(0).max(1).optional().default(0.5),
   minScore: z.number().min(0).optional().default(0.0),
 });
@@ -17,7 +16,6 @@ const sanitizeSearchTerms = (terms: string[]): string[] =>
 const fetchFilteredMessages = async (
   conversationId: string,
   searchTerms: string[] = [],
-  pageSize: number = 15,
   ftsWeight: number = 0.5,
   minScore: number = 0.0
 ): Promise<string[]> => {
@@ -27,7 +25,6 @@ const fetchFilteredMessages = async (
     const { data, error } = await supabase.rpc('get_filtered_messages', {
       p_conversation_id: conversationId,
       p_search_terms: searchTerms,
-      p_limit_val: pageSize,
       p_fts_weight: ftsWeight,
       p_min_score: minScore,
     });
@@ -56,16 +53,15 @@ const fetchFilteredMessages = async (
 export const retrieveMessages = async (
   conversationId: string,
   searchTerms: string[] = [],
-  pageSize: number = 25,
   ftsWeight: number = 0.5,
   minScore: number = 0.0
 ): Promise<string[]> => {
-  const { conversationId: validatedId, searchTerms: terms, pageSize: size, ftsWeight: weight, minScore: score } =
-    retrieveMessagesSchema.parse({ conversationId, searchTerms, pageSize, ftsWeight, minScore });
+  const { conversationId: validatedId, searchTerms: terms, ftsWeight: weight, minScore: score } =
+    retrieveMessagesSchema.parse({ conversationId, searchTerms, ftsWeight, minScore });
 
   const cleanSearchTerms = terms ? sanitizeSearchTerms(terms) : [];
 
   console.log('🔎 Cleaned Search Terms:', cleanSearchTerms);
 
-  return fetchFilteredMessages(validatedId, cleanSearchTerms, size, weight, score);
+  return fetchFilteredMessages(validatedId, cleanSearchTerms, weight, score);
 };
