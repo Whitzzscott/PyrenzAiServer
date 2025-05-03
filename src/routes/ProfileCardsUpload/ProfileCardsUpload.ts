@@ -1,29 +1,46 @@
 import { Request, Response } from "express";
 import { supabase } from "../Supabase.js";
 import { z } from "zod";
+import { v2 as cloudinary } from "cloudinary";
+import fetch from "node-fetch";
 import sharp from "sharp";
-import multer from "multer";
-
-const upload = multer({ storage: multer.memoryStorage() });
 
 export const ProfileCardsUpload = async (req: Request, res: Response) => {
   try {
-    const { card_name, card_description } = z.object({
+    const { card_name, card_description, card_image } = z.object({
       card_name: z.string().min(1, "Card name is required"),
-      card_description: z.string().min(1, "Card description is required")
+      card_description: z.string().min(1, "Card description is required"),
+      card_image: z.string().min(1, "Card image is required"),
     }).parse(req.body);
 
-    if (!req.file) {
-      return res.status(400).json({ error: "card_image is required" });
+    const base64Data = card_image.replace(/^data:image\/\w+;base64,/, "");
+    const buffer = Buffer.from(base64Data, "base64");
+
+    const uploadResult = await cloudinary.uploader.upload(
+      `data:image/png;base64,${base64Data}`,
+      { format: "avif" }
+    );
+
+    if (!uploadResult.secure_url) {
+      return res.status(500).json({ error: "Image conversion failed" });
     }
 
-    const avifImage = await sharp(req.file.buffer).toFormat("avif").toBuffer();
+    const avifImageUrl = uploadResult.secure_url;
+
+    const response = await fetch(avifImageUrl);
+    const avifBuffer = await response.buffer();
+
+    const compressedBuffer = await sharp(avifBuffer)
+      .avif({ quality: 80 })
+      .toBuffer();
+
     const fileName = `${Date.now()}-${card_name.replace(/\s+/g, "-").toLowerCase()}.avif`;
+    const folderPath = `persona-image/${fileName}`;
 
     const { error: uploadError } = await supabase
       .storage
       .from("persona-cards")
-      .upload(fileName, avifImage, { contentType: "image/avif", upsert: false });
+      .upload(folderPath, compressedBuffer, { contentType: "image/avif", upsert: false });
 
     if (uploadError) {
       return res.status(500).json({ error: "Image upload failed", details: uploadError.message });
@@ -32,12 +49,12 @@ export const ProfileCardsUpload = async (req: Request, res: Response) => {
     const { data: publicUrlData } = supabase
       .storage
       .from("persona-cards")
-      .getPublicUrl(fileName);
+      .getPublicUrl(folderPath);
 
     const imageUrl = publicUrlData.publicUrl;
 
     const { error: dbError } = await supabase
-      .from("character_cards")
+      .from("persona_cards")
       .insert([{ card_name, card_description, card_image: imageUrl }]);
 
     if (dbError) {
