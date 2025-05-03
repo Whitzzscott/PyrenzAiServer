@@ -6,9 +6,8 @@ import { retrieveMessages } from './GenerateSystem/retrieveMessage.js';
 import axios from 'axios';
 import { z } from 'zod';
 import llamaTokenizer from 'llama-tokenizer-js';
-import { v4 as uuidv4 } from 'uuid';
-import { savePreviousMessage } from './GenerateSystem/savePreviousMessage.js';
-import { OPENROUTER_API_KEY } from '@routes/utility.js'
+import { OPENROUTER_API_KEY } from '../../routes/utility.js';
+import Bottleneck from 'bottleneck';
 
 if (!OPENROUTER_API_KEY) throw new Error('Missing OPENROUTER_API_KEY in environment variables.');
 
@@ -19,8 +18,12 @@ const requestSchema = z.object({
   ConversationId: z.string().uuid(),
   Message: z.object({ User: z.string().min(1) }),
   Engine: z.enum(Object.keys(modelMap) as [keyof typeof modelMap]).default('Mango Ube'),
-  characterImageUrl: z.string().url(),
   inference_settings: z.record(z.any()).optional(),
+});
+
+const limiter = new Bottleneck({
+  maxConcurrent: 30,
+  minTime: 200
 });
 
 async function callOpenRouterAPI(data: any) {
@@ -32,16 +35,14 @@ async function callOpenRouterAPI(data: any) {
 const cleanMemory = (message: string): string =>
   message.replace(/^### Memory \(User Response\):\s*/i, '').replace(/^### Memory \(AI Response\):\s*/i, '').trim();
 
-export default async function generate(req: Request, res: Response) {
+export default async function Generate(req: Request, res: Response) {
   try {
-    const { ConversationId, Message, Engine, characterImageUrl, inference_settings = {} } = requestSchema.parse(req.body);
+    const { ConversationId, Message, Engine, inference_settings = {} } = requestSchema.parse(req.body);
     const rawUserMessage = Message.User;
     const model = modelMap[Engine];
 
     const createdAt = new Date();
     const tokenCount = llamaTokenizer.encode(rawUserMessage).length;
-    const userMessageUuid = uuidv4();
-    const charMessageUuid = uuidv4();
 
     const { error, Instruction } = await generateInstruction(ConversationId);
     if (error || !Instruction) return res.status(400).json({ error: error || 'Failed to fetch instruction' });
@@ -56,21 +57,21 @@ export default async function generate(req: Request, res: Response) {
       { role: 'user', content: `### Instruction:\n${rawUserMessage}\n\n### Response:` },
     ];
 
-    const response = await callOpenRouterAPI({
+    const response = await limiter.schedule(() => callOpenRouterAPI({
       model,
       messages: messageHistory,
       ...inference_settings,
       max_tokens: 500,
       temperature: 1.4,
       top_p: 0.1,
-    });
+    }));
 
-    const aiMessage = response?.data?.choices?.[0]?.message?.content;
-    if (!aiMessage) return res.status(500).json({ error: 'Failed to retrieve AI response' });
+    const charMessage = response?.data?.choices?.[0]?.message?.content;
+    if (!charMessage) return res.status(500).json({ error: 'Failed to retrieve character response' });
 
     const [userVector, aiVector] = await Promise.all([
       vectorizeMessage(rawUserMessage),
-      vectorizeMessage(aiMessage),
+      vectorizeMessage(charMessage),
     ]);
 
     if (userVector.length !== 1536 || aiVector.length !== 1536) {
@@ -80,22 +81,17 @@ export default async function generate(req: Request, res: Response) {
     await saveMessageToSupabase(
       ConversationId,
       rawUserMessage,
-      aiMessage,
+      charMessage,
       ConversationId,
       createdAt,
       userVector,
       aiVector,
-      userMessageUuid,
-      charMessageUuid
     );
 
-    await savePreviousMessage(req, ConversationId, aiMessage, characterImageUrl);
-
     res.json({
-      data: { role: 'character', content: aiMessage },
+      data: { role: 'character', content: charMessage },
       Engine,
       token: tokenCount,
-      id: [{ userMessageUuid, charMessageUuid }],
     });
   } catch (error: unknown) {
     if (error instanceof z.ZodError) {

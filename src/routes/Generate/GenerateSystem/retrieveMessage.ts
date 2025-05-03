@@ -33,31 +33,31 @@ const fetchFilteredMessages = async (
   try {
     console.log('🔍 Search Terms:', searchTerms.length ? searchTerms : 'No search terms provided');
 
-    const searchVector = searchTerms.length
-      ? await vectorizeMessage(searchTerms.join(' '))
-      : null;
-
-    const { data, error } = (await supabase.rpc('get_filtered_messages', {
-      convo_id: conversationId,
-      search_terms: searchTerms,
-      limit_val: pageSize,
-      search_vector: searchVector,
-      fts_weight: ftsWeight,
-      min_score: minScore,
-    })) as { data: MessageResult[] | null; error: any };
+    const { data, error } = await supabase.rpc('get_filtered_messages', {
+      p_conversation_id: conversationId,
+      p_search_terms: searchTerms,
+      p_limit_val: pageSize,
+      p_fts_weight: ftsWeight,
+      p_min_score: minScore,
+    });
 
     if (error) throw new Error(`Message retrieval failed: ${error.message}`);
 
-    const memoryLogs = (data ?? [])
-      .map((msg) => {
-        const userMemory = msg.user_message ? `### Memory (User Response):\n${msg.user_message}` : '';
-        const aiMemory = msg.ai_message ? `### Memory (AI Response):\n${msg.ai_message}` : '';
-        return [userMemory, aiMemory].filter(Boolean).join('\n\n');
-      });
+    console.log('📦 Data returned from RPC call:', data);
+
+    if (!Array.isArray(data)) {
+      throw new Error('Unexpected data format returned from RPC call');
+    }
+
+    const memoryLogs = data.map((msg: MessageResult) => {
+      const userMemory = msg.user_message ? `### Memory (User Response):\n${msg.user_message}` : '';
+      const aiMemory = msg.ai_message ? `### Memory (AI Response):\n${msg.ai_message}` : '';
+      return [userMemory, aiMemory].filter(Boolean).join('\n\n');
+    });
 
     console.log('🧠 Retrieved Memory:', memoryLogs.length ? memoryLogs : ['No relevant memory found.']);
 
-    return memoryLogs;
+    return memoryLogs.length > 0 ? memoryLogs : [];
   } catch (error) {
     console.error('❗ Error fetching filtered messages:', error);
     throw error;

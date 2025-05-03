@@ -31,10 +31,9 @@ const urlSchema = z.object({
   url: z.string().url(),
 });
 
-// Initialize Bottleneck with a maxConcurrent limit of 35
 const limiter = new Bottleneck({
   maxConcurrent: 35,
-  minTime: 100 // Optional: minimum time between requests
+  minTime: 100
 });
 
 export const CharacterExtract = async (req: Request, res: Response): Promise<void> => {

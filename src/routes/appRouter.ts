@@ -1,13 +1,13 @@
 import type { Request, Response } from "express";
 import { supabase } from "./Supabase.js";
 import { 
-  GetPreviousChat,
   Chats,
-  GetMessages,
 } from "./Chats/ChatsHandler.js"
 import { getPersona } from "./Persona/Persona.js"
 import createCharacter from "./Create/CreateCharacter.js"
 import { CharacterExtract } from "./CharacterExtract/characterextractor.js"
+import Generate from "../routes/Generate/Generate.js"
+import { ProfileCardsUpload } from "./ProfileCardsUpload/ProfileCardsUpload.js"
 
 type RouteHandler = (
   req: Request,
@@ -15,12 +15,12 @@ type RouteHandler = (
 ) => Promise<Response | void> | Response | void;
 
 const Routes: Record<string, RouteHandler> = {
-  GetPreviousChat,
-  GetMessages,
   Chats,
   getPersona,
   createCharacter,
   CharacterExtract,
+  Generate, 
+  ProfileCardsUpload
 };
 
 const AutoRoutes = new Proxy(Routes, {
