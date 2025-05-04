@@ -93,8 +93,8 @@ export default async function createCharacter(req: Request, res: Response): Prom
   const { isSafe, moderationResult } = await moderateContent(contentToModerate);
   console.log('Moderation Result:', moderationResult);
 
-  if (!isSafe) {
-    res.status(400).json({ error: 'Content contains inappropriate material', moderationResult });
+  if (!isSafe || moderationResult.categories['sexual/minors']) {
+    res.status(400).json({ error: 'Content contains inappropriate material or involves minors', moderationResult });
     return;
   }
 
