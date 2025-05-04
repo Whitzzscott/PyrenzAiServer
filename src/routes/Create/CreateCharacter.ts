@@ -24,6 +24,7 @@ const createCharacterSchema = z.object({
   first_message: z.string().min(1, 'First message is required'),
   tags: z.array(z.string()).optional(),
   gender: z.enum(['male', 'female', 'other']),
+  creator: z.string().min(1, 'Creator is required'),
   textarea_token: z.object({
     persona: z.number(),
     name: z.number(),
@@ -78,7 +79,7 @@ export default async function createCharacter(req: Request, res: Response): Prom
     return;
   }
 
-  const { bannerImage, profileImage, auth_key, tags, ...characterData } = validation.data;
+  const { bannerImage, profileImage, auth_key, tags, creator, ...characterData } = validation.data;
 
   const contentToModerate = [
     characterData.persona,
@@ -147,7 +148,8 @@ export default async function createCharacter(req: Request, res: Response): Prom
     const payload = {
       ...characterData,
       user_uuid: user.user.id,
-      auth_key,
+      tags,
+      creator,
       ...(bannerImageUrl && { bannerImage: bannerImageUrl }),
       ...(profileImageUrl && { profileImage: profileImageUrl }),
     };
@@ -158,7 +160,7 @@ export default async function createCharacter(req: Request, res: Response): Prom
 
     if (charError) throw charError;
 
-    const input_char_uuid = charData;
+    const input_char_uuid = Array.isArray(charData) ? charData[0] : charData;
 
     const { data: chatData, error: chatError } = await supabase.rpc('create_new_chat', {
       character_uuid: input_char_uuid,
@@ -174,12 +176,11 @@ export default async function createCharacter(req: Request, res: Response): Prom
           .from('tags')
           .select('name')
           .eq('name', tag)
-          .eq('user_uuid', user.user.id)
-          .single();
+          .eq('user_uuid', user.user.id);
 
         if (tagCheckError) throw tagCheckError;
 
-        if (!existingTag) {
+        if (!existingTag || existingTag.length === 0) {
           const { error: tagInsertError } = await supabase
             .from('tags')
             .insert([{ user_uuid: user.user.id, name: tag }]);
