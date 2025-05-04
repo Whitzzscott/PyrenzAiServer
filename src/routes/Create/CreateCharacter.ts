@@ -170,11 +170,22 @@ export default async function createCharacter(req: Request, res: Response): Prom
 
     if (tags && tags.length > 0) {
       for (const tag of tags) {
-        const { error: tagError } = await supabase
+        const { data: existingTag, error: tagCheckError } = await supabase
           .from('tags')
-          .insert([{ user_uuid: user.user.id, name: tag }]);
+          .select('name')
+          .eq('name', tag)
+          .eq('user_uuid', user.user.id)
+          .single();
 
-        if (tagError) throw tagError;
+        if (tagCheckError) throw tagCheckError;
+
+        if (!existingTag) {
+          const { error: tagInsertError } = await supabase
+            .from('tags')
+            .insert([{ user_uuid: user.user.id, name: tag }]);
+
+          if (tagInsertError) throw tagInsertError;
+        }
       }
     }
 
