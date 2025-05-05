@@ -18,7 +18,7 @@ const requestSchema = z.object({
   ConversationId: z.string().uuid(),
   Message: z.object({ User: z.string().min(1) }),
   Engine: z.enum(Object.keys(modelMap) as [keyof typeof modelMap]).default('Mango Ube'),
-  inference_settings: z.record(z.any()).optional(),
+  inference_settings: z.record(z.any()),
 });
 
 const limiter = new Bottleneck({
@@ -57,13 +57,12 @@ export default async function Generate(req: Request, res: Response) {
       { role: 'user', content: `### Instruction:\n${rawUserMessage}\n\n### Response:` },
     ];
 
+    const finalSettings = { ...inference_settings };
+
     const response = await limiter.schedule(() => callOpenRouterAPI({
       model,
       messages: messageHistory,
-      ...inference_settings,
-      max_tokens: 500,
-      temperature: 1.4,
-      top_p: 0.1,
+      ...finalSettings,
     }));
 
     const charMessage = response?.data?.choices?.[0]?.message?.content;

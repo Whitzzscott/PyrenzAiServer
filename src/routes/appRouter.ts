@@ -1,9 +1,5 @@
 import type { Request, Response } from "express";
 import { supabase } from "./Supabase.js";
-import { 
-  Chats,
-} from "./Chats/ChatsHandler.js"
-import { getPersona } from "./Persona/Persona.js"
 import createCharacter from "./Create/CreateCharacter.js"
 import { CharacterExtract } from "./CharacterExtract/characterextractor.js"
 import Generate from "../routes/Generate/Generate.js"
@@ -15,8 +11,6 @@ type RouteHandler = (
 ) => Promise<Response | void> | Response | void;
 
 const Routes: Record<string, RouteHandler> = {
-  Chats,
-  getPersona,
   createCharacter,
   CharacterExtract,
   Generate, 

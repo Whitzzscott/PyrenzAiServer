@@ -4,8 +4,14 @@ import { v4 as uuidv4 } from 'uuid';
 import { supabase } from '../Supabase.js';
 import { OPENAI_API_KEY } from '../utility.js';
 import OpenAI from 'openai';
+import Bottleneck from 'bottleneck';
 
 const openai = new OpenAI({ apiKey: OPENAI_API_KEY });
+
+const limiter = new Bottleneck({
+  maxConcurrent: 1,
+  minTime: 1000 / 60,
+});
 
 const decodeBase64Image = (dataString: string): Buffer => {
   const matches = dataString.match(/^data:(.+);base64,(.+)$/);
@@ -37,10 +43,9 @@ const createCharacterSchema = z.object({
   token_total: z.number(),
   bannerImage: z.string().optional(),
   profileImage: z.string().optional(),
-  auth_key: z.string().min(1, 'auth_key is required'),
 });
 
-const moderateContent = async (content: string): Promise<{ isSafe: boolean; moderationResult: any }> => {
+const moderateContent = limiter.wrap(async (content: string): Promise<{ isSafe: boolean; moderationResult: any }> => {
   try {
     const response = await openai.moderations.create({
       input: content,
@@ -51,7 +56,7 @@ const moderateContent = async (content: string): Promise<{ isSafe: boolean; mode
   } catch (error) {
     throw new Error('Error moderating content with OpenAI');
   }
-};
+});
 
 export default async function createCharacter(req: Request, res: Response): Promise<void> {
   const accessToken = req.headers.authorization?.replace('Bearer ', '');
@@ -79,7 +84,7 @@ export default async function createCharacter(req: Request, res: Response): Prom
     return;
   }
 
-  const { bannerImage, profileImage, auth_key, tags, creator, ...characterData } = validation.data;
+  const { bannerImage, profileImage, tags, creator, ...characterData } = validation.data;
 
   const contentToModerate = [
     characterData.persona,
@@ -162,14 +167,6 @@ export default async function createCharacter(req: Request, res: Response): Prom
 
     const input_char_uuid = Array.isArray(charData) ? charData[0] : charData;
 
-    const { data: chatData, error: chatError } = await supabase.rpc('create_new_chat', {
-      character_uuid: input_char_uuid,
-      user_uuid: user.user.id,
-      auth_key,
-    });
-
-    if (chatError) throw chatError;
-
     if (tags && tags.length > 0) {
       for (const tag of tags) {
         const { data: existingTag, error: tagCheckError } = await supabase
@@ -191,9 +188,8 @@ export default async function createCharacter(req: Request, res: Response): Prom
     }
 
     res.status(200).json({
-      message: 'Character and chat created successfully',
+      message: 'Character created successfully',
       character_uuid: input_char_uuid,
-      chat: chatData,
       moderationResult: moderationResult,
     });
   } catch (err) {

@@ -11,7 +11,7 @@ export async function generateInstruction(ChatId: string): Promise<GenerateInstr
   try {
     const { data: chatRecord, error: chatError } = await supabase
       .from('chats')
-      .select('input_char_uuid')
+      .select('char_uuid')
       .eq('chat_uuid', ChatId)
       .single();
 
@@ -20,16 +20,16 @@ export async function generateInstruction(ChatId: string): Promise<GenerateInstr
       return { error: chatError.code === 'PGRST116' ? 'Chat not found' : 'Failed to fetch chat details' };
     }
 
-    if (!chatRecord?.input_char_uuid) return { error: 'No character assigned to this chat' };
+    if (!chatRecord?.char_uuid) return { error: 'No character assigned to this chat' };
 
     const { data: character, error: characterError } = await supabase
       .from('characters')
       .select('persona, name, first_message, model_instructions')
-      .eq('input_char_uuid', chatRecord.input_char_uuid)
+      .eq('char_uuid', chatRecord.char_uuid)
       .single();
 
     if (characterError) {
-      console.error(`Error fetching character (Character ID: ${chatRecord.input_char_uuid}):`, characterError.message);
+      console.error(`Error fetching character (Character ID: ${chatRecord.char_uuid}):`, characterError.message);
       return { error: 'Failed to fetch character details' };
     }
 
@@ -42,7 +42,7 @@ export async function generateInstruction(ChatId: string): Promise<GenerateInstr
     }
 
     const Instruction = `### Instruction:
-You are **${name}**, a character with the following persona:
+You are **${name}** always act as ${name} and speak as ${name}, a character with the following persona:
 _${persona}_
 
 #### Scenario:
