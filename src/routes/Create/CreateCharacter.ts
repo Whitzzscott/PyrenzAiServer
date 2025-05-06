@@ -28,7 +28,7 @@ const createCharacterSchema = z.object({
   scenario: z.string().min(1, 'Scenario is required'),
   description: z.string().min(1, 'Description is required'),
   first_message: z.string().min(1, 'First message is required'),
-  tags: z.array(z.string()).optional(), // Expect tags as an array of strings
+  tags: z.array(z.string()).optional(),
   gender: z.enum(['male', 'female', 'other']),
   creator: z.string().min(1, 'Creator is required'),
   textarea_token: z.object({
@@ -146,9 +146,9 @@ export default async function createCharacter(req: Request, res: Response): Prom
 
     const payload = {
       ...characterData,
-      user_uuid: user.user.id,
-      tags,
+      creator_uuid: user.user.id,
       creator,
+      tags,
       ...(bannerImageUrl && { bannerImage: bannerImageUrl }),
       ...(profileImageUrl && { profileImage: profileImageUrl }),
     };
