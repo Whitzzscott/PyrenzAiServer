@@ -28,7 +28,7 @@ const createCharacterSchema = z.object({
   scenario: z.string().min(1, 'Scenario is required'),
   description: z.string().min(1, 'Description is required'),
   first_message: z.string().min(1, 'First message is required'),
-  tags: z.array(z.string()).optional(),
+  tags: z.array(z.string()).optional(), // Expect tags as an array of strings
   gender: z.enum(['male', 'female', 'other']),
   creator: z.string().min(1, 'Creator is required'),
   textarea_token: z.object({
@@ -72,13 +72,7 @@ export default async function createCharacter(req: Request, res: Response): Prom
     return;
   }
 
-  let requestBody = req.body;
-
-  if (typeof requestBody.tags === 'string') {
-    requestBody.tags = requestBody.tags.split(',').map((tag: string) => tag.trim());
-  }
-
-  const validation = createCharacterSchema.safeParse(requestBody);
+  const validation = createCharacterSchema.safeParse(req.body);
   if (!validation.success) {
     res.status(400).json({ errors: validation.error.errors });
     return;
