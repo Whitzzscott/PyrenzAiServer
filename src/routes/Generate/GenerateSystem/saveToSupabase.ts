@@ -4,7 +4,7 @@ export async function saveMessageToSupabase(
   conversationId: string,
   userMessage: string,
   charMessage: string,
-  userId: string,
+  user_uuid: string,
   createdAt: Date,
   userVector: number[],
   aiVector: number[]
@@ -15,7 +15,7 @@ export async function saveMessageToSupabase(
         conversation_id: conversationId,
         user_message: userMessage,
         char_message: charMessage,
-        user_uuid: userId,
+        user_uuid: user_uuid,
         created_at: createdAt,
         user_vector: userVector,
         ai_vector: aiVector,

@@ -158,11 +158,13 @@ export default async function Generate(req: Request, res: Response) {
       ConversationId,
       rawUserMessage,
       charMessage,
-      ConversationId,
+      user_uuid,
       createdAt,
       userVector,
       aiVector,
     );
+    
+    
 
     res.json({
       data: { role: 'character', content: charMessage },
