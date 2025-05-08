@@ -9,7 +9,7 @@ export const SUPABASE_URL = "https://cqtbishpefnfvaxheyqu.supabase.co";
 export const JWT_SECRET = process.env.JWT_SECRET;
 export const OPENROUTER_API_KEY = process.env.OPENROUTER_API_KEY;
 export const OPENAI_API_KEY = process.env.OPENAI_API_KEY;
-
+export const SPECIAL_HASH_KEY = process.env.SPECIAL_HASH_KEY || "special_hash_key";
 cloudinary.config({
   cloud_name: process.env.CLOUDINARY_CLOUD_NAME,
   api_key: process.env.CLOUDINARY_API_KEY,
