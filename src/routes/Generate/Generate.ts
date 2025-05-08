@@ -9,11 +9,7 @@ import llamaTokenizer from 'llama-tokenizer-js';
 import { OPENROUTER_API_KEY } from '../../routes/utility.js';
 import Bottleneck from 'bottleneck';
 import { supabase } from '../Supabase.js';
-import jwt from 'jsonwebtoken';
-
-interface AdTokenPayload {
-  created_at: string;
-}
+import { validateAdWatchKey } from './GenerateSystem/validateAdWatchKey.js';
 
 if (!OPENROUTER_API_KEY) throw new Error('Missing OPENROUTER_API_KEY in environment variables.');
 
@@ -29,7 +25,7 @@ const requestSchema = z.object({
     presence_penalty: z.number().optional(),
     frequency_penalty: z.number().optional(),
   }),
-  ad_token: z.string().optional(),
+  ad_watch_key: z.string().optional(),
   user_uuid: z.string().uuid(),
 });
 
@@ -64,7 +60,7 @@ async function fetchModelName(identifierUUID: string): Promise<string | null> {
 
 export default async function Generate(req: Request, res: Response) {
   try {
-    const { ConversationId, Message, inference_settings, ad_token, user_uuid } = requestSchema.parse(req.body);
+    const { ConversationId, Message, inference_settings, ad_watch_key, user_uuid } = requestSchema.parse(req.body);
     const rawUserMessage = Message.User;
 
     const { model_id, ...otherSettings } = inference_settings;
@@ -74,41 +70,10 @@ export default async function Generate(req: Request, res: Response) {
       return res.status(400).json({ error: 'Invalid model identifier' });
     }
 
-    if (ad_token) {
-      const { data: userData, error: fetchError } = await supabase
-        .from('user_data')
-        .select('ad_token')
-        .eq('user_uuid', user_uuid)
-        .single();
-
-      if (fetchError) {
-        console.error('Error fetching user data:', fetchError);
-        return res.status(500).json({ error: 'Failed to fetch user data' });
-      }
-
-      if (!userData.ad_token) {
-        return res.status(403).json({ error: 'Invalid ad_token' });
-      }
-
-      try {
-        const decoded = jwt.verify(userData.ad_token, 'your_jwt_secret') as AdTokenPayload;
-        const { created_at } = decoded;
-
-        if (Date.now() - new Date(created_at).getTime() > 15000) {
-          return res.status(403).json({ error: 'ad_token expired' });
-        }
-      } catch (error) {
-        return res.status(403).json({ error: 'Invalid ad_token' });
-      }
-
-      const { error: updateError } = await supabase
-        .from('user_data')
-        .update({ ad_token: null })
-        .eq('user_uuid', user_uuid);
-
-      if (updateError) {
-        console.error('Error updating ad_token:', updateError);
-        return res.status(500).json({ error: 'Failed to update ad_token' });
+    if (ad_watch_key) {
+      const isValid = await validateAdWatchKey(user_uuid, ad_watch_key);
+      if (!isValid) {
+        return res.status(403).json({ error: 'Invalid or expired ad_watch_key' });
       }
     }
 
@@ -125,20 +90,32 @@ export default async function Generate(req: Request, res: Response) {
 
     let remainingMessages = userData.message_count;
 
-    if (remainingMessages <= 0 && !ad_token) {
-      return res.status(403).json({ error: 'Message limit reached. Please provide a valid ad_token to continue.' });
-    }
+    if (remainingMessages <= 0) {
+      if (!ad_watch_key) {
+        return res.status(403).json({ error: 'Message limit reached. Please provide a valid ad_watch_key to continue.' });
+      } else {
+        remainingMessages = 15;
+        const { error: updateError } = await supabase
+          .from('user_data')
+          .update({ message_count: remainingMessages })
+          .eq('user_uuid', user_uuid);
 
-    remainingMessages--;
+        if (updateError) {
+          console.error('Error updating message count:', updateError);
+          return res.status(500).json({ error: 'Failed to update message count' });
+        }
+      }
+    } else {
+      remainingMessages--;
+      const { error: updateError } = await supabase
+        .from('user_data')
+        .update({ message_count: remainingMessages })
+        .eq('user_uuid', user_uuid);
 
-    const { error: updateError } = await supabase
-      .from('user_data')
-      .update({ message_count: remainingMessages })
-      .eq('user_uuid', user_uuid);
-
-    if (updateError) {
-      console.error('Error updating message count:', updateError);
-      return res.status(500).json({ error: 'Failed to update message count' });
+      if (updateError) {
+        console.error('Error updating message count:', updateError);
+        return res.status(500).json({ error: 'Failed to update message count' });
+      }
     }
 
     const createdAt = new Date();

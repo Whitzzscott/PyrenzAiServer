@@ -4,7 +4,7 @@ import createCharacter from "./Create/CreateCharacter.js"
 import { CharacterExtract } from "./CharacterExtract/characterextractor.js"
 import Generate from "../routes/Generate/Generate.js"
 import { ProfileCardsUpload } from "./ProfileCardsUpload/ProfileCardsUpload.js"
-
+import { Getadtoken } from "./Authentication/AdwatchAuth.js"
 type RouteHandler = (
   req: Request,
   res: Response,
@@ -14,7 +14,8 @@ const Routes: Record<string, RouteHandler> = {
   createCharacter,
   CharacterExtract,
   Generate, 
-  ProfileCardsUpload
+  ProfileCardsUpload,
+  Getadtoken
 };
 
 const AutoRoutes = new Proxy(Routes, {

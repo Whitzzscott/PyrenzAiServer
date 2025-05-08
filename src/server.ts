@@ -28,10 +28,16 @@ const corsOptions = {
   allowedHeaders: ['Content-Type', 'Authorization', 'Authentication_key', 'Captcha_key'],
 };
 
-const limiter = rateLimit({
+const apiLimiter = rateLimit({
   windowMs: 60 * 1000,
   max: 60,
   message: { error: "Too many requests. Please try again later." },
+});
+
+const globalLimiter = rateLimit({
+  windowMs: 60 * 1000,
+  max: 5,
+  message: { error: "Too many requests from this IP. Please try again later." },
 });
 
 const setResponseHeaders = (req: Request, res: Response, next: NextFunction) => {
@@ -62,6 +68,8 @@ app.use(bodyParser.json({ limit: "50mb" }));
 app.use(bodyParser.urlencoded({ limit: "50mb", extended: true }));
 app.use(express.static("public"));
 
+app.use(globalLimiter);
+
 app.get("/ping", (_req: Request, res: Response) => {
   console.log("Ping received");
   res.send("Pong");
@@ -71,7 +79,7 @@ type RouteHandler = (req: Request, res: Response) => Promise<void> | void;
 interface RoutesType { [key: string]: RouteHandler; }
 const routes = Routes as RoutesType;
 
-app.use('/api', limiter);
+app.use('/api', apiLimiter);
 
 app.all("/api/:action", async (req: Request, res: Response, next: NextFunction) => {
   const { action } = req.params;
