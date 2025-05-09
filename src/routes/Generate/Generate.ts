@@ -24,9 +24,7 @@ const requestSchema = z.object({
     temperature: z.number().optional().default(0.7),
     presence_penalty: z.number().optional().default(0.0),
     frequency_penalty: z.number().optional().default(0.5),
-  }),  
-  ad_watch_key: z.string().optional(),
-  user_uuid: z.string().uuid(),
+  }),
 });
 
 const limiter = new Bottleneck({
@@ -60,10 +58,16 @@ async function fetchModelName(identifierUUID: string): Promise<string | null> {
 
 export default async function Generate(req: Request, res: Response) {
   try {
-    const { ConversationId, Message, inference_settings, ad_watch_key, user_uuid } = requestSchema.parse(req.body);
+    const { ConversationId, Message, inference_settings } = requestSchema.parse(req.body);
     const rawUserMessage = Message.User;
 
     const { model_id, ...otherSettings } = inference_settings;
+
+    const { user_uuid, ad_watch_key } = req.query;
+
+    if (!user_uuid) {
+      return res.status(400).json({ error: 'user_uuid is required' });
+    }
 
     const modelName = await fetchModelName(model_id);
     if (!modelName) {
@@ -71,7 +75,7 @@ export default async function Generate(req: Request, res: Response) {
     }
 
     if (ad_watch_key) {
-      const isValid = await validateAdWatchKey(user_uuid, ad_watch_key);
+      const isValid = await validateAdWatchKey(user_uuid as string, ad_watch_key as string);
       if (!isValid) {
         return res.status(403).json({ error: 'Invalid or expired ad_watch_key' });
       }
@@ -158,13 +162,11 @@ export default async function Generate(req: Request, res: Response) {
       ConversationId,
       rawUserMessage,
       charMessage,
-      user_uuid,
+      user_uuid as string,
       createdAt,
       userVector,
       aiVector,
     );
-    
-    
 
     res.json({
       data: { role: 'character', content: charMessage },
