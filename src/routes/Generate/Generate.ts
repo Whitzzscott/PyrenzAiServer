@@ -52,7 +52,6 @@ async function fetchModelName(identifierUUID: string): Promise<string | null> {
     console.error('Error fetching model name:', error);
     return null;
   }
-
   return data.model_name;
 }
 
