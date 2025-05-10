@@ -80,18 +80,18 @@ export default async function Generate(req: Request, res: Response) {
       }
     }
 
-    const { data: userData, error: fetchError } = await supabase
-      .from('user_data')
+    const { data: adData, error: fetchError } = await supabase
+      .from('ad_table')
       .select('message_count')
       .eq('user_uuid', user_uuid)
       .single();
 
     if (fetchError) {
-      console.error('Error fetching user data:', fetchError);
-      return res.status(500).json({ error: 'Failed to fetch user data' });
+      console.error('Error fetching ad data:', fetchError);
+      return res.status(500).json({ error: 'Failed to fetch ad data' });
     }
 
-    let remainingMessages = userData.message_count;
+    let remainingMessages = adData.message_count;
 
     if (remainingMessages <= 0) {
       if (!ad_watch_key) {
@@ -99,7 +99,7 @@ export default async function Generate(req: Request, res: Response) {
       } else {
         remainingMessages = 15;
         const { error: updateError } = await supabase
-          .from('user_data')
+          .from('ad_table')
           .update({ message_count: remainingMessages })
           .eq('user_uuid', user_uuid);
 
@@ -111,7 +111,7 @@ export default async function Generate(req: Request, res: Response) {
     } else {
       remainingMessages--;
       const { error: updateError } = await supabase
-        .from('user_data')
+        .from('ad_table')
         .update({ message_count: remainingMessages })
         .eq('user_uuid', user_uuid);
 

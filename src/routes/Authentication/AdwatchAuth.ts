@@ -43,7 +43,7 @@ export const Getadtoken = async (req: any, res: any) => {
 
     const result = await limiter.schedule(() =>
       supabase
-        .from('user_data')
+        .from('ad_table')
         .update({
           ad_watch_key: token,
         })
