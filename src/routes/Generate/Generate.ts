@@ -169,7 +169,6 @@ export default async function Generate(req: Request, res: Response) {
 
     res.json({
       data: { role: 'character', content: charMessage },
-      Engine: modelName,
       token: tokenCount,
       remainingMessages,
     });
