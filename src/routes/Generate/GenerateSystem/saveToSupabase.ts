@@ -29,7 +29,7 @@ export async function saveMessageToSupabase(
     const { data: chatData, error: fetchError } = await supabase
       .from('chats')
       .select('char_uuid')
-      .eq('conversation_id', conversationId)
+      .eq('chat_uuid', conversationId)
       .single();
 
     if (fetchError) {
